@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+*.tgz
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+npm-shrinkwrap.json
+assets/qrcode.png
+.secrets/
+config.local.json
+proxy/.env
