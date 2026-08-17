@@ -4,23 +4,26 @@ Browse and watch your self-hosted TubeArchivist video library
 
 ## Installation
 
-### Quick Install
+GrayJay's plugin settings don't support free text, so there's no way to
+type your own TubeArchivist URL into GrayJay's UI directly — every
+install needs a `config.json` with your real URL/token already baked in.
 
-Click this link to install in GrayJay:
-
-**[Install Plugin](grayjay://plugin/https://github.com/TheFehr/grayjay-tubearchivist/releases/latest/download/config.json)**
-
-Or use this URL:
+**Run your own copy** — a single self-contained Docker image, no repo
+clone or build needed:
 
 ```
-grayjay://plugin/https://github.com/TheFehr/grayjay-tubearchivist/releases/latest/download/config.json
+docker run -d -p 8080:80 \
+  -e TA_BASE_URL=https://your-tubearchivist-instance.example \
+  -e TA_API_TOKEN=your-api-token \
+  -e PLUGIN_BASE_URL=https://your-plugin-domain.example \
+  ghcr.io/thefehr/grayjay-tubearchivist:latest
 ```
 
-### QR Code
-
-Scan this QR code with the GrayJay app:
-
-![QR Code](assets/qrcode.png)
+Then install with `grayjay://plugin/<PLUGIN_BASE_URL>/config.json`. See
+[`proxy/README.md`](proxy/README.md) for the full docker-compose setup,
+why it also fixes thumbnails (a real GrayJay limitation, not fixable from
+plugin code alone), and how to build the image yourself instead of
+pulling the published one.
 
 ## Features
 

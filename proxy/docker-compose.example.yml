@@ -1,27 +1,27 @@
-# Standalone example for running the thumbnail-auth proxy on its own.
-# If you're already running this plugin's config/script hosting alongside
-# TubeArchivist in one compose stack (see this project's own deployment),
-# just add the `grayjay-plugin` service + these two env vars to that
+# Standalone example for running the full self-hosted plugin — config.json,
+# script.js, and the thumbnail auth proxy — from the pre-built published
+# image. If you're already running your own compose stack alongside
+# TubeArchivist, just add this service (with these three env vars) to that
 # existing stack instead of running this file separately.
 #
 # Usage:
 #   cd proxy/
-#   cp .env.example .env   # fill in your real TA_BASE_URL and TA_API_TOKEN
+#   cp .env.example .env   # fill in your real TA_BASE_URL, TA_API_TOKEN, PLUGIN_BASE_URL
 #   docker compose -f docker-compose.example.yml up -d
 #
-# Then point config.json's constants.thumbnailProxyBase at wherever this
-# container ends up reachable, e.g. http://<host>:8080/thumb (or behind
-# your own reverse proxy on a real domain with TLS — recommended, since
-# GrayJay's Http package generally expects https:// URLs).
+# No repo clone, no npm/Node, no local build needed — everything (the
+# generic script.js and the per-deployment config.json template) is baked
+# into the image; only your instance's URL/token get filled in at startup.
+#
+# Then use grayjay://plugin/<PLUGIN_BASE_URL>/config.json to install.
 
 services:
-  grayjay-thumbnail-proxy:
-    image: nginx:alpine
+  grayjay-tubearchivist:
+    image: ghcr.io/thefehr/grayjay-tubearchivist:latest
     restart: unless-stopped
     ports:
       - "8080:80"
     environment:
       - TA_BASE_URL=${TA_BASE_URL}
       - TA_API_TOKEN=${TA_API_TOKEN}
-    volumes:
-      - "./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro"
+      - PLUGIN_BASE_URL=${PLUGIN_BASE_URL}

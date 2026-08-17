@@ -1,0 +1,50 @@
+{
+  "name": "TubeArchivist",
+  "platformUrl": "https://www.tubearchivist.com",
+  "description": "Browse and watch your self-hosted TubeArchivist video library",
+  "author": "TheFehr",
+  "authorUrl": "https://github.com/TheFehr",
+  "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
+  "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
+  "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
+  "version": 7,
+  "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
+  "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
+  "scriptSignature": "",
+  "scriptPublicKey": "",
+  "packages": ["Http"],
+  "allowEval": false,
+  "allowAllHttpHeaderAccess": false,
+  "allowUrls": ["${TA_HOST}", ".${TA_HOST}"],
+  "authentication": {
+    "loginUrl": "${TA_BASE_URL}/login",
+    "completionUrl": "${TA_BASE_URL}/api/user/login/",
+    "cookiesToFind": ["sessionid"],
+    "loginWarning": "This login is only used to unlock 'Import Subscriptions' below — the plugin already works without it, using the API token configured separately."
+  },
+  "settings": [
+    {
+      "variable": "baseUrl",
+      "name": "API Server",
+      "description": "API server endpoint",
+      "type": "Dropdown",
+      "default": "0",
+      "options": ["${TA_BASE_URL}"]
+    },
+    {
+      "variable": "enableDebugLogging",
+      "name": "Enable Debug Logging",
+      "description": "Enable detailed logging for debugging purposes",
+      "type": "Boolean",
+      "default": "false"
+    }
+  ],
+  "changelog": {
+    "1": ["Initial release"]
+  },
+  "constants": {
+    "authorization": "Token ${TA_API_TOKEN}",
+    "thumbnailProxyBase": "${PLUGIN_BASE_URL}/thumb"
+  },
+  "_tags": ["video", "selfhosted"]
+}
