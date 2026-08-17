@@ -1,0 +1,31 @@
+server {
+    listen 80;
+
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri =404;
+    }
+
+    # Proxies image/subtitle requests to TubeArchivist with an API token
+    # injected server-side. GrayJay's native Thumbnail/ISubtitleSource
+    # types have no way to attach custom headers to these requests (unlike
+    # VideoUrlSource, which supports requestModifier.headers) — this proxy
+    # exists solely to work around that platform limitation.
+    #
+    # Configured entirely via environment variables (see docker-compose.yml
+    # in this directory, or the README) — this file has no secrets or
+    # instance-specific values in it, safe to commit/share as-is. Values
+    # get substituted in by the official nginx image's built-in envsubst
+    # entrypoint (docker-entrypoint.d/20-envsubst-on-templates.sh) at
+    # container startup — nothing custom needed.
+    #
+    #   TA_BASE_URL   - e.g. https://tubearchivist.example.com (no trailing slash)
+    #   TA_API_TOKEN  - your TubeArchivist API token (Settings page)
+    location /thumb/ {
+        rewrite ^/thumb/(.*)$ /$1 break;
+        proxy_pass ${TA_BASE_URL};
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Authorization "Token ${TA_API_TOKEN}";
+    }
+}
