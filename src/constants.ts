@@ -11,6 +11,8 @@
 
 let _pluginConfig: PluginConfig | null = null;
 let _pluginSettings: Record<string, string> = {};
+let _dynamicToken: string | null = null;
+let _tokenFetchAttempted = false;
 
 export function setPluginConfig(config: PluginConfig | null): void {
   _pluginConfig = config;
@@ -22,6 +24,20 @@ export function setPluginSettings(settings: Record<string, string>): void {
 
 export function getPluginConfig(): PluginConfig | null {
   return _pluginConfig;
+}
+
+/**
+ * Seed the dynamically-fetched API token from previously saved state
+ * (see script.ts source.saveState) — avoids re-fetching every session
+ * once a login has succeeded once.
+ */
+export function setDynamicToken(token: string | null): void {
+  _dynamicToken = token;
+  if (token) _tokenFetchAttempted = true;
+}
+
+export function getDynamicToken(): string | null {
+  return _dynamicToken;
 }
 
 // Error types for consistent exception handling
@@ -88,17 +104,58 @@ export function getBaseUrl(): string {
 }
 
 /**
+ * Fetches the user's API token via GET /api/appsettings/token/, which
+ * TubeArchivist's own frontend authenticates purely with the session
+ * cookie (confirmed: APIClient.ts sends no Authorization header, only
+ * credentials: include) — the same cookie GrayJay's login-webview flow
+ * already captures for the Import Subscriptions button. Passing
+ * useAuth: true routes this specific call through GrayJay's separate
+ * "auth" HTTP client, which attaches that captured cookie automatically.
+ *
+ * Uses the ambient `http` global directly rather than network.ts's
+ * wrapper, since network.ts's _fetch() itself calls getDefaultHeaders()
+ * for every request — going through it here would recurse back into
+ * this same fetch attempt.
+ */
+function fetchDynamicToken(): string | null {
+  try {
+    const url = `${getBaseUrl()}/api/appsettings/token/`;
+    const response = http.GET(url, { Accept: 'application/json' }, true);
+    if (!response.isOk) return null;
+
+    const data = JSON.parse(response.body);
+    return data?.token || null;
+  } catch (e) {
+    log('No API token available yet (login required for full access): ' + e);
+    return null;
+  }
+}
+
+/**
  * Get default HTTP headers to send with every request.
  *
  * NOTE: GrayJay's SourcePluginConfig.constants is a flat Map<String, String>
  * (verified against SourcePluginConfig.kt) — it cannot hold a nested headers
  * object, so the ready-to-use "Authorization" header value is stored directly
  * under constants.authorization instead.
+ *
+ * If no static token is configured (constants.authorization — the case for
+ * this project's own private deployment, which bakes one in at build time),
+ * falls back to fetching one dynamically via the login flow instead, so a
+ * build without a baked-in token still works once the user logs in. Tried
+ * once per session — see fetchDynamicToken.
  * @returns Headers object
  */
 export function getDefaultHeaders(): Record<string, string> {
-  const authorization = _pluginConfig?.constants?.authorization;
-  return authorization ? { Authorization: authorization } : {};
+  const configured = _pluginConfig?.constants?.authorization;
+  if (configured) return { Authorization: configured };
+
+  if (!_dynamicToken && !_tokenFetchAttempted) {
+    _tokenFetchAttempted = true;
+    _dynamicToken = fetchDynamicToken();
+  }
+
+  return _dynamicToken ? { Authorization: `Token ${_dynamicToken}` } : {};
 }
 
 /**

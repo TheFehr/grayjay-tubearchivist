@@ -7,7 +7,7 @@
   "sourceUrl": "https://github.com/TheFehr/grayjay-tubearchivist/releases/latest/download/config.json",
   "scriptUrl": "./script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 6,
+  "version": 7,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -70,6 +70,9 @@
     ],
     "6": [
       "Sign the plugin script — removes the 'Missing Signature' warning on install/update"
+    ],
+    "7": [
+      "Add automatic API token fetching via the login flow, for builds that don't bake in a static token — no effect on this deployment, which already has one configured"
     ]
   },
   "constants": {},

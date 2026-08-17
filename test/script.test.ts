@@ -117,4 +117,22 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
             console.log(`verified round-trip (isChannelUrl + getChannel) for ${sample.length} sample url(s)`)
         }
     })
+
+    test("dynamic token fetch fallback should fail gracefully without a static token or login session", { skip: !isLiveConfig }, () => {
+        const configWithoutStaticToken = JSON.parse(JSON.stringify(config))
+        if (configWithoutStaticToken.constants) delete configWithoutStaticToken.constants.authorization
+
+        source.enable!(configWithoutStaticToken, {})
+        try {
+            // No real login session exists in this Node test environment, so
+            // TubeArchivist is expected to reject the request — this only
+            // verifies the fallback path fails cleanly (a thrown
+            // ScriptException, not an unhandled crash/hang), not the happy
+            // path, which needs a real device login session to exercise.
+            assert.throws(() => source.getHome!(), undefined, "expected an auth-related error without a token, not a silent success")
+        } finally {
+            // restore the real config for any tests that run after this one
+            source.enable!(config, {})
+        }
+    })
 })

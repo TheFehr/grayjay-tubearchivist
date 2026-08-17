@@ -1,6 +1,6 @@
 // TubeArchivist Source Plugin for GrayJay
 
-import { getBaseUrl, getPluginConfig, setPluginConfig, setPluginSettings } from './constants';
+import { getBaseUrl, getDynamicToken, getPluginConfig, setDynamicToken, setPluginConfig, setPluginSettings } from './constants';
 import { api } from './api';
 import { channelToGrayjayChannel, videoToGrayjayVideoDetails } from './mappers';
 import { ChannelSearchPager, EmptyVideoPager, SearchPager, VideoListPager } from './pagers';
@@ -39,6 +39,14 @@ source.enable = function (conf: SourceConfig, settings: Record<string, string>, 
     } catch (e) {
       log('Warning: Failed to load saved state: ' + e);
     }
+  }
+
+  // Seed a previously-fetched dynamic API token (see constants.ts
+  // getDefaultHeaders) so it doesn't need re-fetching every session.
+  // No-op for this project's own deployment, which bakes a static token
+  // into constants.authorization at build time instead.
+  if (pluginState.apiToken) {
+    setDynamicToken(pluginState.apiToken);
   }
 
   log('Plugin enabled: ' + conf.name);
@@ -137,6 +145,8 @@ source.getPlaylist = function (url: string): PlatformPlaylistDetails {
 };
 
 source.saveState = function (): string {
+  const token = getDynamicToken();
+  if (token) pluginState.apiToken = token;
   return JSON.stringify(pluginState);
 };
 
