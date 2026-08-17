@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy this file to config.local.json (gitignored) and fill in your real TubeArchivist server URL and API token (Settings page in the TubeArchivist web UI). Merged into dist/config.json at build time only — never committed or published.",
+  "baseUrl": "https://your-tubearchivist-instance.example",
+  "baseUrlDefault": true,
+  "apiToken": "your-api-token-here",
+  "thumbnailProxyBase": "https://your-auth-injecting-proxy.example/thumb"
+}

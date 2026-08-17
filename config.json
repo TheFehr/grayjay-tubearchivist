@@ -1,0 +1,80 @@
+{
+  "name": "TubeArchivist",
+  "platformUrl": "https://www.tubearchivist.com",
+  "description": "Browse and watch your self-hosted TubeArchivist video library",
+  "author": "TheFehr",
+  "authorUrl": "https://github.com/TheFehr",
+  "sourceUrl": "https://github.com/TheFehr/grayjay-tubearchivist/releases/latest/download/config.json",
+  "scriptUrl": "./script.js",
+  "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
+  "version": 6,
+  "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
+  "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
+  "scriptSignature": "",
+  "scriptPublicKey": "",
+  "packages": [
+    "Http"
+  ],
+  "allowEval": false,
+  "allowAllHttpHeaderAccess": false,
+  "allowUrls": [
+    "tubearchivist.example.com",
+    ".tubearchivist.example.com"
+  ],
+  "authentication": {
+    "loginUrl": "https://tubearchivist.example.com/login",
+    "completionUrl": "https://tubearchivist.example.com/api/user/login/",
+    "cookiesToFind": [
+      "sessionid"
+    ],
+    "loginWarning": "This login is only used to unlock 'Import Subscriptions' below — the plugin already works without it, using the API token configured separately."
+  },
+  "settings": [
+    {
+      "variable": "baseUrl",
+      "name": "API Server",
+      "description": "API server endpoint",
+      "type": "Dropdown",
+      "default": "0",
+      "options": [
+        "https://tubearchivist.example.com"
+      ]
+    },
+    {
+      "variable": "enableDebugLogging",
+      "name": "Enable Debug Logging",
+      "description": "Enable detailed logging for debugging purposes",
+      "type": "Boolean",
+      "default": "false"
+    }
+  ],
+  "changelog": {
+    "1": [
+      "Initial release"
+    ],
+    "2": [
+      "Fix Dropdown settings crashing on enable (value must be an index, not the raw string)",
+      "Fix config validation crash from a non-flat constants object",
+      "Fix thumbnails/subtitles failing to load (no way to attach auth headers to them natively; now routed through an auth-injecting proxy)",
+      "Remove unused/incorrect authentication block and claimType overrides"
+    ],
+    "3": [
+      "Add watched/progress sync: playback position is reported to TubeArchivist as you watch, so watched status stays in sync"
+    ],
+    "4": [
+      "Add Import Subscriptions support — sync TubeArchivist's subscribed channels into GrayJay in one tap, from the source's detail page",
+      "Requires a one-time login prompt (separate from the existing API token) to unlock the Import button"
+    ],
+    "5": [
+      "Fix login webview never closing — completionUrl was guessed at a page URL, but TubeArchivist's login redirect is client-side (no network request); now matches the actual login API call, which GrayJay's webview can observe"
+    ],
+    "6": [
+      "Sign the plugin script — removes the 'Missing Signature' warning on install/update"
+    ]
+  },
+  "constants": {},
+  "_tags": [
+    "video",
+    "selfhosted"
+  ]
+}
