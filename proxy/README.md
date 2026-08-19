@@ -84,6 +84,26 @@ docker build -t grayjay-tubearchivist:local .
 Then use `image: grayjay-tubearchivist:local` in place of the `ghcr.io`
 image above.
 
+### Signing
+
+The published `ghcr.io` image is signed automatically by CI, using the
+maintainer's private key (stored as the `PLUGIN_SIGNING_KEY` GitHub Actions
+secret and passed into the build via a BuildKit secret mount — it never
+lands in an image layer). A plain `docker build` like the one above, without
+`--secret`, produces an unsigned image: it still works, just shows GrayJay's
+"Missing Signature" warning. To sign your own local build with your own key:
+
+```
+docker build --secret id=signing_key,src=.secrets/signing_key.pem -t grayjay-tubearchivist:local .
+```
+
+Note: Docker's local layer cache doesn't factor secret *content* into its
+cache key, so rebuilding locally with a different `--secret` (or none) can
+silently reuse a stale signed/unsigned layer from a previous build. Add
+`--no-cache` when testing a change to signing locally. This doesn't affect
+the published image — the GitHub Actions workflow has no persistent build
+cache configured, so every CI build is fresh.
+
 ## How it works
 
 - `script.js` is generic — it carries no user-specific values, just reads
