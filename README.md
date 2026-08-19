@@ -2,6 +2,8 @@
 
 Browse and watch your self-hosted TubeArchivist video library
 
+> Not affiliated with or endorsed by the TubeArchivist or GrayJay/FUTO projects.
+
 ## Installation
 
 GrayJay's plugin settings don't support free text, so there's no way to
