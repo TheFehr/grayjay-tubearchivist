@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 9,
+  "version": 10,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -40,7 +40,38 @@
     }
   ],
   "changelog": {
-    "1": ["Initial release"]
+    "1": ["Initial release"],
+    "2": [
+      "Fix Dropdown settings crashing on enable (value must be an index, not the raw string)",
+      "Fix config validation crash from a non-flat constants object",
+      "Fix thumbnails/subtitles failing to load (no way to attach auth headers to them natively; now routed through an auth-injecting proxy)",
+      "Remove unused/incorrect authentication block and claimType overrides"
+    ],
+    "3": [
+      "Add watched/progress sync: playback position is reported to TubeArchivist as you watch, so watched status stays in sync"
+    ],
+    "4": [
+      "Add Import Subscriptions support — sync TubeArchivist's subscribed channels into GrayJay in one tap, from the source's detail page",
+      "Requires a one-time login prompt (separate from the existing API token) to unlock the Import button"
+    ],
+    "5": [
+      "Fix login webview never closing — completionUrl was guessed at a page URL, but TubeArchivist's login redirect is client-side (no network request); now matches the actual login API call, which GrayJay's webview can observe"
+    ],
+    "6": [
+      "Sign the plugin script — removes the 'Missing Signature' warning on install/update"
+    ],
+    "7": [
+      "Add automatic API token fetching via the login flow, for builds that don't bake in a static token"
+    ],
+    "8": [
+      "Actually sign this self-hosted Docker image — v6's signing fix only ever covered a separate, manually-built deployment; this published image was still shipping unsigned"
+    ],
+    "9": [
+      "Fix thumbnails/subtitles being blocked when this plugin is served from a different host than TubeArchivist itself — allowUrls now includes the plugin's own host, not just TubeArchivist's"
+    ],
+    "10": [
+      "Backfill this changelog — versions 1-9 had real fixes that were never recorded here"
+    ]
   },
   "constants": {
     "authorization": "Token ${TA_API_TOKEN}",
