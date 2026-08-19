@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 8,
+  "version": 9,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -15,7 +15,7 @@
   "packages": ["Http"],
   "allowEval": false,
   "allowAllHttpHeaderAccess": false,
-  "allowUrls": ["${TA_HOST}", ".${TA_HOST}"],
+  "allowUrls": ["${TA_HOST}", ".${TA_HOST}", "${PLUGIN_HOST}", ".${PLUGIN_HOST}"],
   "authentication": {
     "loginUrl": "${TA_BASE_URL}/login",
     "completionUrl": "${TA_BASE_URL}/api/user/login/",

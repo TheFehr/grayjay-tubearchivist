@@ -13,12 +13,19 @@ set -eu
 : "${TA_API_TOKEN:?TA_API_TOKEN environment variable is required (TubeArchivist Settings page)}"
 : "${PLUGIN_BASE_URL:?PLUGIN_BASE_URL environment variable is required (where THIS container is reachable, e.g. https://grayjay.example.com)}"
 
-# Derived host-only value for config.json's allowUrls (envsubst can't do
-# string manipulation itself, so this is computed here as a plain env var).
+# Derived host-only values for config.json's allowUrls (envsubst can't do
+# string manipulation itself, so this is computed here as plain env vars).
+# Both TA's host and the plugin's own host are needed: thumbnails/subtitles
+# are proxied through PLUGIN_BASE_URL (see nginx.conf.template's /thumb/
+# location), not TA_BASE_URL, so GrayJay's allowUrls sandbox must permit
+# both — they're commonly different hosts (e.g. TA and the plugin on
+# different subdomains).
 TA_HOST=$(echo "$TA_BASE_URL" | sed -E 's#^[a-zA-Z]+://##; s#/.*##')
 export TA_HOST
+PLUGIN_HOST=$(echo "$PLUGIN_BASE_URL" | sed -E 's#^[a-zA-Z]+://##; s#/.*##')
+export PLUGIN_HOST
 
-envsubst '${TA_BASE_URL} ${TA_API_TOKEN} ${TA_HOST} ${PLUGIN_BASE_URL}' \
+envsubst '${TA_BASE_URL} ${TA_API_TOKEN} ${TA_HOST} ${PLUGIN_BASE_URL} ${PLUGIN_HOST}' \
   < /etc/nginx/config-templates/config.json.template \
   > /usr/share/nginx/html/config.json
 
