@@ -33,7 +33,7 @@ pulling the published one.
 - [x] Authentication
 - [ ] Live Streams
 - [ ] Comments
-- [x] Playlists
+- [ ] Playlists
 - [x] Home Feed
 - [x] Channel Details
 - [x] Video Details
@@ -63,17 +63,23 @@ npm run build
 
 This will generate the minified plugin files in the `dist/` directory.
 
-### Testing with Dev Server
-
-The fastest way to test your plugin during development:
+### Automated Test Suite
 
 ```bash
 npm run test
 ```
 
+Builds the plugin and runs `test/script.test.ts` (Node's built-in test runner) against a live TubeArchivist instance configured via `config.local.json` — browsing, search, video/channel details, playback, and subscription import.
+
+### Live Device Testing (Dev Portal)
+
+```bash
+npm run test:integration
+```
+
 This will:
 
-- 🔍 **Scan** your local network for GrayJay dev servers (port 11337)
+- 🔍 **Discover** a GrayJay dev server on your network (mDNS, falling back to a network scan; port 11337)
 - 🌐 **Start** a local HTTP server to serve your plugin files
 - 📤 **Inject** your plugin into the dev server automatically
 - 🚀 **Open** the dev portal in your default browser
@@ -91,14 +97,6 @@ This will:
 3. Click "Reload" button in dev portal
 4. Test your changes immediately!
 
-### Build and Publish
-
-```bash
-npm run build:publish [version]
-```
-
-This will build the plugin and trigger a GitHub release. Requires `GITHUB_TOKEN` environment variable.
-
 ### Development Mode
 
 ```bash
@@ -112,29 +110,34 @@ This will watch for changes and rebuild automatically.
 ```
 .
 ├── src/
-│   ├── script.ts         # Main plugin entry point
-│   ├── constants.ts      # Constants and configuration
-│   ├── utils.ts          # Utility functions
-│   ├── graphql/          # GraphQL module (if applicable)
-│   │   └── queries.ts
-│   ├── api/              # API client module (if applicable)
-│   │   └── client.ts
-│   ├── mappers/          # Data mapping (if applicable)
-│   │   └── index.ts
-│   ├── pagers/           # Pagination classes (if applicable)
-│   │   └── index.ts
-│   └── state/            # State management (if applicable)
-│       └── index.ts
+│   ├── script.ts          # Main plugin entry point — all source.* handlers
+│   ├── api.ts              # TubeArchivist REST API client
+│   ├── constants.ts        # Plugin config/settings/token state
+│   ├── subscriptions.ts    # Import Subscriptions (subscribed-channel lookup)
+│   ├── types.ts            # TubeArchivist API response types
+│   ├── mappers/
+│   │   └── index.ts        # Maps TubeArchivist responses to GrayJay content types
+│   ├── pagers/
+│   │   └── index.ts        # Pagination classes
+│   └── utils/
+│       ├── network.ts      # HTTP fetch wrapper (auth headers, retries)
+│       └── types.d.ts      # Ambient GrayJay plugin types
+├── proxy/                  # Self-hostable Docker image sources — config
+│                           # templating + thumbnail/subtitle auth proxy
+│                           # (see proxy/README.md)
+├── Dockerfile               # Builds script.js and packages it with proxy/
+├── test/                    # Test suite (runs against a live TubeArchivist instance)
+├── scripts/                 # Signing/publishing/dev-server helper scripts
 ├── assets/
-│   └── qrcode.png        # QR code for installation (generated once)
-├── dist/                 # Build output (gitignored)
-│   ├── config.json       # Minified plugin configuration
-│   └── script.js         # Minified and compiled script
-├── .secrets/             # Private keys (gitignored)
-│   └── signing_key.pem   # RSA private key for signing
-├── scripts/
-│   ├── sign.js           # Plugin signing script
-│   └── publish.js        # Publishing automation script
+│   └── qrcode.png           # Leftover from an earlier install flow — unused
+│                            # by the current Docker-based install path
+├── dist/                    # Build output (gitignored)
+│   ├── config.json          # Rendered plugin configuration
+│   └── script.js            # Compiled script
+├── .secrets/                # Private keys (gitignored)
+│   └── signing_key.pem      # RSA private key for signing
+├── config.json               # Committed plugin manifest (placeholder baseUrl only)
+├── config.local.json.example # Template for local dev against a real instance
 ├── package.json
 ├── tsconfig.json
 ├── rollup.config.js
@@ -177,33 +180,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Releases
 
-## 🚀 Publishing
+Actual distribution is the Docker image described in [Installation](#installation)
+above, built and pushed to `ghcr.io/thefehr/grayjay-tubearchivist` automatically
+by `.github/workflows/docker-publish.yml` on every push to `main`.
 
-```bash
-# Publish a new version (auto-bumps patch version)
-npm run publish
-
-# Publish with specific version
-npm run publish 5
-
-# Or build, sign, and publish in one command
-npm run build:publish
-```
-
-The publish script will:
-
-1. ✅ Bump the version (or set to specified version)
-2. ✅ Build the plugin
-3. ✅ Sign the plugin (generate signature and public key)
-4. ✅ Generate a QR code for installation
-5. ✅ Commit changes
-6. ✅ Create a git tag
-7. ✅ Push to GitHub (triggers release workflow)
-
-### Prerequisites
-
-- **OpenSSL**: Required for signing (usually pre-installed on Linux/Mac, available via Git Bash on Windows)
-- **Git**: With configured remote repository
+`scripts/publish.js` (`npm run publish`) is a separate, older maintainer script
+that bumps the version, builds, signs the script, generates a QR code, and pushes
+a git tag to trigger `.github/workflows/release.yml`. Since the committed
+`config.json` only ever ships a placeholder `baseUrl`, a release built this way
+isn't independently installable — it predates the Docker/GHCR approach and isn't
+part of the current install path.
 
 ## Support
 
@@ -212,4 +198,4 @@ For issues and questions, please use the [GitHub Issues](https://github.com/TheF
 ## Acknowledgments
 
 - Built for [GrayJay](https://grayjay.app/)
-- Generated using [@grayjay/source-generator](https://www.npmjs.com/package/@grayjay/source-generator)
+- Generated using [@grayjay-sources/source-generator](https://www.npmjs.com/package/@grayjay-sources/source-generator)
