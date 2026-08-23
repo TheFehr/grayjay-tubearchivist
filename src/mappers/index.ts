@@ -92,13 +92,16 @@ function buildSubtitles(video: TAVideo): ISubtitleSource[] {
 /**
  * Reports playback position to TubeArchivist's /api/video/<id>/progress/
  * endpoint, which computes watched-status server-side from position —
- * no separate "mark as watched" call is needed. Called by GrayJay's real
- * app via VideoDetails.getPlaybackTracker() (not source.getPlaybackTracker,
- * despite what the dev portal's own docs list suggest — confirmed against
- * JSVideoDetails.kt/JSPlaybackTracker.kt). `nextRequest` is read by the
- * host after every call and controls the ms until the next onProgress.
+ * no separate "mark as watched" call is needed. Constructed by
+ * source.getPlaybackTracker(url) in script.ts — per
+ * node_modules/@types/grayjay-source/src/plugin.d.ts, that's a top-level
+ * source method GrayJay's host calls directly with the content url, not
+ * a property on the PlatformVideoDetails object (IPlatformVideoDetailsDef
+ * has no such field, so one placed there is silently dropped). `nextRequest`
+ * is read by the host after every call and controls the ms until the next
+ * onProgress.
  */
-class TAPlaybackTracker extends PlaybackTracker {
+export class TAPlaybackTracker extends PlaybackTracker {
   private videoId: string;
   private lastSeconds = 0;
 
@@ -112,7 +115,7 @@ class TAPlaybackTracker extends PlaybackTracker {
     this.report(seconds);
   }
 
-  onProgress(seconds: number): void {
+  onProgress(seconds: number, _isPlaying: boolean): void {
     this.lastSeconds = seconds;
     this.report(seconds);
   }
@@ -138,8 +141,7 @@ export function videoToGrayjayVideoDetails(pluginId: string, video: TAVideo): Pl
     description: video.description || '',
     video: buildVideoSource(video),
     rating: new RatingLikesDislikes(video.stats?.like_count || 0, video.stats?.dislike_count || 0),
-    subtitles: buildSubtitles(video),
-    getPlaybackTracker: () => new TAPlaybackTracker(video.youtube_id)
+    subtitles: buildSubtitles(video)
   };
 
   return new PlatformVideoDetails(detailsDef);

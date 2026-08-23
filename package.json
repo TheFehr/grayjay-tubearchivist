@@ -4,6 +4,8 @@
   "description": "Browse and watch your self-hosted TubeArchivist video library",
   "main": "dist/script.js",
   "scripts": {
+    "typecheck": "tsc --noEmit",
+    "prebuild": "npm run typecheck",
     "build": "rollup -c",
     "sign": "node scripts/sign.js",
     "build:sign": "npm run build && npm run sign",

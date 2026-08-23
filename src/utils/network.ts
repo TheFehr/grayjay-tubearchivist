@@ -71,7 +71,11 @@ function _fetch(url: string, options: FetchOptions = {}): any {
       } else if (upperMethod === 'POST') {
         response = http.POST(url, body, headers, useAuth);
       } else {
-        response = http.request(upperMethod, url, body, headers, useAuth);
+        // http.request() (no body param) is only for GET/DELETE/HEAD;
+        // anything reaching this fallback (PUT/PATCH/DELETE/...) needs
+        // requestWithBody instead, or a body/headers/useAuth positional
+        // mismatch happens silently (headers land in the body slot, etc).
+        response = http.requestWithBody(upperMethod as MethodWithBody, url, body, headers, useAuth);
       }
 
       // Check response status

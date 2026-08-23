@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 12,
+  "version": 13,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -77,6 +77,9 @@
     ],
     "12": [
       "Show GrayJay's native sign-in prompt when playback fails because you're not logged in yet, instead of a raw 'Failed to load video' error — a direct follow-up to v11's login-by-default change"
+    ],
+    "13": [
+      "Fix watched/progress sync never actually working — getPlaybackTracker was implemented in the wrong place (a property on the video details object) instead of as the top-level source.getPlaybackTracker(url) method GrayJay's host actually calls, so it was silently never invoked on a real device since this feature was added in v3"
     ]
   },
   "constants": {

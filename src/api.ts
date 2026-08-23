@@ -70,7 +70,7 @@ class APIClient {
    * Perform a DELETE request to the API
    */
   delete(endpoint: string, options?: Omit<network.FetchOptions, 'method'>): any {
-    return network.delete(this.getUrl(endpoint), options);
+    return network.del(this.getUrl(endpoint), options);
   }
 
   /**

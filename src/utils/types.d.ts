@@ -1,7 +1,7 @@
 /**
  * Plugin setting definition
  */
-export interface PluginSetting {
+declare interface PluginSetting {
   /** Setting variable name (used to access the value) */
   variable?: string;
   /** Display name shown to user */
@@ -125,13 +125,19 @@ declare interface PluginConfig extends SourceConfig {
 }
 
 /**
- * Plugin runtime context (initialized in source.enable)
+ * @types/grayjay-source's PlatformVideo class only declares `plugin_type`/
+ * `author` as instance properties, even though its constructor takes the
+ * full IPlatformVideoDef (id, name, thumbnails, datetime, url, ...) — the
+ * real GrayJay host exposes all of those as readable properties too (this
+ * plugin's mappers rely on spreading a PlatformVideo instance). Declaration-
+ * merge the rest in until upstream's types reflect that.
  */
-declare const plugin: {
-  /** Plugin configuration from config.json */
-  config: PluginConfig | null;
-  /** User-selected settings */
-  settings: Record<string, string>;
-  /** Persistent state (loaded from saveStateStr, saved via source.saveState) */
-  state: Record<string, any>;
-};
+declare interface PlatformVideo extends IPlatformVideoDef {}
+
+// Deliberately no local `declare const plugin` override here — this plugin
+// never reads the ambient plugin.config/plugin.settings/plugin.state
+// globals (see script.ts's source.enable, constants.ts), only the values
+// passed into source.enable()/saveState() directly, so the vendor's own
+// `plugin` declaration (config/settings, no `state` — see
+// @types/grayjay-source/src/plugin.d.ts) is left as the single source of
+// truth instead of redeclaring a conflicting shape here.

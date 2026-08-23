@@ -77,16 +77,21 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         console.log("video details:", redacted(details))
     })
 
-    test("getPlaybackTracker should report progress to TubeArchivist", { skip: !isLiveConfig }, () => {
+    test("source.getPlaybackTracker should report progress to TubeArchivist", { skip: !isLiveConfig }, () => {
+        // GrayJay's real host calls source.getPlaybackTracker(url) directly
+        // (see node_modules/@types/grayjay-source/src/plugin.d.ts) — not a
+        // getPlaybackTracker property on the details object returned from
+        // getContentDetails. That was the actual bug: this test used to
+        // call details.getPlaybackTracker() instead, which passed even
+        // though GrayJay's host would never find or call it for real.
+        assert.ok(typeof source.getPlaybackTracker === "function", "source.getPlaybackTracker should exist")
+
         const home = source.getHome() as VideoPager
         assert.ok(home.results.length > 0, "expected at least one home video")
 
         const url = (home.results[0] as any).url
-        const details = source.getContentDetails!(url) as any
-        assert.ok(typeof details.getPlaybackTracker === "function", "getPlaybackTracker should be a function on video details")
-
-        const tracker = details.getPlaybackTracker()
-        assert.ok(tracker, "getPlaybackTracker() should return a tracker")
+        const tracker = source.getPlaybackTracker!(url) as any
+        assert.ok(tracker, "source.getPlaybackTracker(url) should return a tracker")
         assert.ok(typeof tracker.nextRequest === "number", "tracker should expose a numeric nextRequest")
         assert.ok(typeof tracker.onProgress === "function", "tracker should expose onProgress")
 

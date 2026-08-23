@@ -2,9 +2,10 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "ESNext",
+    "moduleResolution": "node",
     "rootDir": "./src",
     "typeRoots": ["node_modules/@types"],
-    "types": ["node", "grayjay-source"],
+    "types": ["node"],
     "allowJs": true,
     "checkJs": true,
     "sourceMap": false,
@@ -17,6 +18,7 @@
     "noImplicitAny": false,
     "skipLibCheck": true
   },
+  "files": ["./node_modules/@types/grayjay-source/src/plugin.d.ts"],
   "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "./dist", "rollup.config.js"]
 }

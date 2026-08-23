@@ -2,7 +2,7 @@
 
 import { getBaseUrl, getDynamicToken, getPluginConfig, setDynamicToken, setPluginConfig, setPluginSettings } from './constants';
 import { api } from './api';
-import { channelToGrayjayChannel, videoToGrayjayVideoDetails } from './mappers';
+import { channelToGrayjayChannel, videoToGrayjayVideoDetails, TAPlaybackTracker } from './mappers';
 import { ChannelSearchPager, EmptyVideoPager, SearchPager, VideoListPager } from './pagers';
 import { getSubscribedChannelUrls } from './subscriptions';
 
@@ -29,9 +29,10 @@ function parseChannelId(url: string): string | null {
 }
 
 // Source Methods
-source.enable = function (conf: SourceConfig, settings: Record<string, string>, saveStateStr?: string) {
-  setPluginConfig((conf || {}) as PluginConfig);
-  setPluginSettings(settings || {});
+source.enable = function (conf: SourceConfig, settings: unknown, saveStateStr?: string | null) {
+  const config = (conf || {}) as PluginConfig;
+  setPluginConfig(config);
+  setPluginSettings((settings as Record<string, string>) || {});
 
   if (saveStateStr) {
     try {
@@ -49,7 +50,7 @@ source.enable = function (conf: SourceConfig, settings: Record<string, string>, 
     setDynamicToken(pluginState.apiToken);
   }
 
-  log('Plugin enabled: ' + conf.name);
+  log('Plugin enabled: ' + config.name);
 };
 
 source.getHome = function (): VideoPager {
@@ -118,6 +119,13 @@ source.getContentDetails = function (url: string): PlatformVideoDetails {
 
   const video = api.getVideo(videoId);
   return videoToGrayjayVideoDetails(pluginId(), video);
+};
+
+source.getPlaybackTracker = function (url: string): PlaybackTracker | null {
+  const videoId = parseVideoId(url);
+  if (!videoId) return null;
+
+  return new TAPlaybackTracker(videoId);
 };
 
 source.isPlaylistUrl = function (url: string): boolean {

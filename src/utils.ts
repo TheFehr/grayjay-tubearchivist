@@ -181,39 +181,6 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Get thumbnail with specific resolution
- */
-export function selectThumbnail(
-  thumbnails: Thumbnail[],
-  preferredWidth: number = 1280
-): Thumbnail | null {
-  if (!thumbnails || thumbnails.length === 0) return null;
-  
-  // Find closest match to preferred width
-  return thumbnails.reduce((best, current) => {
-    const bestDiff = Math.abs(best.width - preferredWidth);
-    const currentDiff = Math.abs(current.width - preferredWidth);
-    return currentDiff < bestDiff ? current : best;
-  });
-}
-
-/**
- * Create Thumbnails object from array of URLs
- */
-export function createThumbnails(urls: string[], widths?: number[]): Thumbnails {
-  const defaultWidths = [320, 640, 1280, 1920];
-  const thumbnailSources = urls.map((url, index) => ({
-    url: url,
-    width: widths?.[index] || defaultWidths[index] || 1280,
-    height: 0 // Height will be auto-calculated by aspect ratio
-  }));
-  
-  return {
-    sources: thumbnailSources
-  };
-}
-
-/**
  * Log helper (respects debug setting)
  */
 function log(message: string): void {

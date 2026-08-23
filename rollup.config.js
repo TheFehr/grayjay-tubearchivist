@@ -100,11 +100,10 @@ module.exports = {
     del({ targets: `${dest}/*` }),
     resolve(),
     commonjs(),
-    typescript({ 
+    typescript({
       tsconfig: "./tsconfig.json",
       compilerOptions: {
-        skipLibCheck: true,
-        types: []  // Don't auto-include any type packages
+        skipLibCheck: true
       }
     }),
     terser({
