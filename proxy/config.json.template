@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 11,
+  "version": 12,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -74,6 +74,9 @@
     ],
     "11": [
       "Stop baking your TubeArchivist API token into this plugin's config.json by default — that file has to be fetchable with no auth of its own, so anyone who could reach this plugin's URL could previously read your real token. Now defaults to a per-device login instead; the old baked-in-token behavior still exists but requires an explicit ALLOW_INSECURE_TOKEN=true opt-in on the server"
+    ],
+    "12": [
+      "Show GrayJay's native sign-in prompt when playback fails because you're not logged in yet, instead of a raw 'Failed to load video' error — a direct follow-up to v11's login-by-default change"
     ]
   },
   "constants": {

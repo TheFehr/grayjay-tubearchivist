@@ -25,6 +25,15 @@ defineIfMissing(
 );
 
 defineIfMissing(
+  'LoginRequiredException',
+  class LoginRequiredException extends (globalThis as any).ScriptException {
+    constructor(message: string) {
+      super('LoginRequiredException', message);
+    }
+  }
+);
+
+defineIfMissing(
   'PlatformVideo',
   class PlatformVideo {
     plugin_type = 'PlatformVideoDetails';

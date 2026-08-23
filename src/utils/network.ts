@@ -76,6 +76,18 @@ function _fetch(url: string, options: FetchOptions = {}): any {
 
       // Check response status
       if (!response.isOk) {
+        // 401/403 means whatever token we sent (or didn't) isn't valid —
+        // retrying the same request won't fix that. Throwing
+        // LoginRequiredException instead of a generic ScriptException lets
+        // GrayJay's host app show its native "please sign in" prompt
+        // (wired to authentication.loginUrl in config.json) instead of a
+        // raw error dialog.
+        if (response.code === 401 || response.code === 403) {
+          throw new LoginRequiredException(
+            `TubeArchivist rejected the request (HTTP ${response.code}) — sign in to get a new API token.`
+          );
+        }
+
         const error = new ScriptException(
           'NetworkError',
           `Request to ${url} failed with status ${response.code}`
@@ -105,6 +117,14 @@ function _fetch(url: string, options: FetchOptions = {}): any {
       return response;
 
     } catch (error) {
+      // Don't retry auth failures — a missing/invalid token stays missing/
+      // invalid until the user logs in, so retrying just delays the same
+      // outcome and buries it under a generic "failed after N attempts"
+      // NetworkError instead of the LoginRequiredException GrayJay needs.
+      if (error instanceof LoginRequiredException) {
+        throw error;
+      }
+
       lastError = error as Error;
       attempts--;
 

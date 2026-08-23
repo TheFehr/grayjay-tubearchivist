@@ -125,11 +125,18 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         source.enable!(configWithoutStaticToken, {})
         try {
             // No real login session exists in this Node test environment, so
-            // TubeArchivist is expected to reject the request — this only
-            // verifies the fallback path fails cleanly (a thrown
-            // ScriptException, not an unhandled crash/hang), not the happy
-            // path, which needs a real device login session to exercise.
-            assert.throws(() => source.getHome!(), undefined, "expected an auth-related error without a token, not a silent success")
+            // TubeArchivist is expected to reject the request (401/403) —
+            // this only verifies the fallback path fails cleanly with the
+            // specific LoginRequiredException GrayJay's host app needs to
+            // show its native sign-in prompt (see network.ts _fetch), not
+            // an unhandled crash/hang or a generic NetworkError. The happy
+            // path (login succeeding) needs a real device login session to
+            // exercise.
+            assert.throws(
+                () => source.getHome!(),
+                (err: unknown) => err instanceof (globalThis as any).LoginRequiredException,
+                "expected a LoginRequiredException without a token, not a silent success or a generic error"
+            )
         } finally {
             // restore the real config for any tests that run after this one
             source.enable!(config, {})
