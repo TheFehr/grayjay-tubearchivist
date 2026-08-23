@@ -13,7 +13,8 @@ TubeArchivist URL into GrayJay's UI, and the committed `config.json` in
 this repo only ever has a placeholder domain baked in. This container
 solves that the same way the project's own private deployment works:
 `config.json` is rendered from a template at container startup using your
-real URL/token, so every self-hoster gets a correctly-populated config
+real URL (and, if you opt in, your API token — see "Logging in vs. baking
+in a token" below), so every self-hoster gets a correctly-populated config
 without needing their own build pipeline.
 
 It also fixes a separate, real limitation: GrayJay's native
@@ -46,8 +47,27 @@ grayjay://plugin/<PLUGIN_BASE_URL>/config.json
 Three required environment variables:
 
 - `TA_BASE_URL` — your TubeArchivist instance, e.g. `https://tubearchivist.example.com` (no trailing slash)
-- `TA_API_TOKEN` — your API token (TubeArchivist Settings page)
+- `TA_API_TOKEN` — your API token (TubeArchivist Settings page). Always needed server-side, regardless of the setting below — this container's own `/thumb/` proxy uses it to authenticate every thumbnail/subtitle request on behalf of whichever device is asking (see "How it works"), which has nothing to do with how playback itself gets authenticated.
 - `PLUGIN_BASE_URL` — where *this* container ends up reachable, e.g. `https://grayjay.example.com`. Needs a real domain with TLS for actual use — GrayJay's `Http` package expects `https://`. A bare `http://localhost:8080`-style address is fine for quick local testing only.
+
+### Logging in vs. baking in a token
+
+By default, `TA_API_TOKEN` stays server-side only, used just for the
+`/thumb/` proxy above. It does **not** get echoed into `config.json` — that
+file is served with no authentication of its own (GrayJay has to be able to
+fetch it before any login exists), so anyone who can reach `PLUGIN_BASE_URL`
+can read whatever's in it. Instead, each device gets its own token for actual
+playback/API calls by logging in through GrayJay's login prompt the first
+time it plays something — the token that comes back is stored on that device
+only, never published anywhere.
+
+You *can* still bake the same static token into `config.json` too (skips the
+login step on every device), by setting:
+
+- `ALLOW_INSECURE_TOKEN=true` — explicit acknowledgement that anyone who can
+  reach `PLUGIN_BASE_URL` can then read `TA_API_TOKEN` straight out of
+  `config.json` and use it against `TA_BASE_URL` directly, same access your
+  own login would grant, without ever needing to log in.
 
 ## Already running TubeArchivist via docker-compose?
 
@@ -63,12 +83,15 @@ Add this as a service in that same stack instead of running it standalone:
       - TA_BASE_URL=${TA_BASE_URL}
       - TA_API_TOKEN=${TA_API_TOKEN}
       - PLUGIN_BASE_URL=${PLUGIN_BASE_URL}
+      # Optional, not recommended — see "Logging in vs. baking in a token"
+      # above. Leave unset to use per-device login instead.
+      # - ALLOW_INSECURE_TOKEN=true
     labels:
       - "traefik.enable=true"
       # ...your reverse proxy's routing labels for whatever domain you want this on
 ```
 
-Add the three env vars to your stack's `.env` file, redeploy.
+Add the env vars to your stack's `.env` file, redeploy.
 
 ## Building it yourself instead of pulling the published image
 

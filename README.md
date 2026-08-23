@@ -8,7 +8,12 @@ Browse and watch your self-hosted TubeArchivist video library
 
 GrayJay's plugin settings don't support free text, so there's no way to
 type your own TubeArchivist URL into GrayJay's UI directly — every
-install needs a `config.json` with your real URL/token already baked in.
+install needs a `config.json` with your real URL already baked in. Each
+device then gets its own API token for playback by logging in through
+GrayJay's login prompt the first time it plays something (that token stays
+on-device, never published — see [`proxy/README.md`](proxy/README.md) for
+the opt-in, not-recommended alternative of also baking a static token into
+`config.json` itself).
 
 **Run your own copy** — a single self-contained Docker image, no repo
 clone or build needed:

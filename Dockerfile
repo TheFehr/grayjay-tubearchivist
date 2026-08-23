@@ -44,6 +44,11 @@ RUN --mount=type=secret,id=signing_key,target=/run/secrets/signing_key.pem \
 # why that's needed — GrayJay's Thumbnail/ISubtitleSource types have no
 # way to carry an Authorization header).
 FROM nginx:alpine
+# jq lets 15-generate-config-json.sh conditionally add constants.authorization
+# to config.json rather than always templating it in via envsubst — see that
+# script for why (envsubst can't do conditionals, and TA_API_TOKEN is now
+# optional).
+RUN apk add --no-cache jq
 COPY --from=builder /app/dist/script.js /usr/share/nginx/html/script.js
 COPY --from=builder /app/config.json.template /etc/nginx/config-templates/config.json.template
 COPY proxy/nginx.conf.template /etc/nginx/templates/default.conf.template

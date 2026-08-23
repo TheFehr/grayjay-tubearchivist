@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 10,
+  "version": 11,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -20,7 +20,7 @@
     "loginUrl": "${TA_BASE_URL}/login",
     "completionUrl": "${TA_BASE_URL}/api/user/login/",
     "cookiesToFind": ["sessionid"],
-    "loginWarning": "This login is only used to unlock 'Import Subscriptions' below — the plugin already works without it, using the API token configured separately."
+    "loginWarning": "Needed to fetch your TubeArchivist API token for playback (unless this deployment already has one baked in) and to unlock 'Import Subscriptions' below."
   },
   "settings": [
     {
@@ -71,10 +71,12 @@
     ],
     "10": [
       "Backfill this changelog — versions 1-9 had real fixes that were never recorded here"
+    ],
+    "11": [
+      "Stop baking your TubeArchivist API token into this plugin's config.json by default — that file has to be fetchable with no auth of its own, so anyone who could reach this plugin's URL could previously read your real token. Now defaults to a per-device login instead; the old baked-in-token behavior still exists but requires an explicit ALLOW_INSECURE_TOKEN=true opt-in on the server"
     ]
   },
   "constants": {
-    "authorization": "Token ${TA_API_TOKEN}",
     "thumbnailProxyBase": "${PLUGIN_BASE_URL}/thumb"
   },
   "_tags": ["video", "selfhosted"]

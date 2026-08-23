@@ -25,3 +25,5 @@ services:
       - TA_BASE_URL=${TA_BASE_URL}
       - TA_API_TOKEN=${TA_API_TOKEN}
       - PLUGIN_BASE_URL=${PLUGIN_BASE_URL}
+      # Optional, not recommended — see .env.example / proxy/README.md.
+      - ALLOW_INSECURE_TOKEN=${ALLOW_INSECURE_TOKEN:-}
