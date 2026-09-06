@@ -4,7 +4,7 @@
  * with automatic retries, error handling, and conditional features
  */
 
-import { getDefaultHeaders } from '../constants';
+import { getDefaultHeaders, invalidateDynamicToken } from '../constants';
 
 /**
  * Request options for network calls
@@ -50,14 +50,22 @@ function _fetch(url: string, options: FetchOptions = {}): any {
     throwOnError = true
   } = options;
 
-  // Merge with default headers from plugin config
-  const defaultHeaders = getDefaultHeaders();
-  const headers = { ...defaultHeaders, ...customHeaders };
-
   let lastError: Error | null = null;
   let attempts = retries + 1; // +1 for initial attempt
+  // getDefaultHeaders() only ever attempts fetchDynamicToken() once and then
+  // caches the result (including failure) for the rest of the plugin
+  // session. Without a one-time refetch here, a token that goes bad mid-
+  // session (expired cookie, rotated token, TA restart) 403s forever until
+  // the user forces a script reload via Log out + Login. Guard with a flag
+  // so we only ever retry once per _fetch call, not once per retry attempt.
+  let didRetryWithFreshToken = false;
 
   while (attempts > 0) {
+    // Recomputed each loop iteration so a post-401/403 invalidateDynamicToken()
+    // (below) is picked up on the retry instead of reusing the stale headers.
+    const defaultHeaders = getDefaultHeaders();
+    const headers = { ...defaultHeaders, ...customHeaders };
+
     try {
       let response;
       const upperMethod = method.toUpperCase();
@@ -80,13 +88,22 @@ function _fetch(url: string, options: FetchOptions = {}): any {
 
       // Check response status
       if (!response.isOk) {
-        // 401/403 means whatever token we sent (or didn't) isn't valid —
-        // retrying the same request won't fix that. Throwing
-        // LoginRequiredException instead of a generic ScriptException lets
-        // GrayJay's host app show its native "please sign in" prompt
-        // (wired to authentication.loginUrl in config.json) instead of a
-        // raw error dialog.
         if (response.code === 401 || response.code === 403) {
+          // First 401/403 in this call: the cached token might just be
+          // stale rather than the user actually being logged out. Drop it
+          // and retry once with a freshly-fetched one before giving up.
+          if (!didRetryWithFreshToken) {
+            didRetryWithFreshToken = true;
+            invalidateDynamicToken();
+            continue;
+          }
+
+          // Still failing after a fresh token attempt means whatever we
+          // sent (or didn't) really isn't valid — retrying further won't
+          // fix that. Throwing LoginRequiredException instead of a generic
+          // ScriptException lets GrayJay's host app show its native
+          // "please sign in" prompt (wired to authentication.loginUrl in
+          // config.json) instead of a raw error dialog.
           throw new LoginRequiredException(
             `TubeArchivist rejected the request (HTTP ${response.code}) — sign in to get a new API token.`
           );

@@ -40,6 +40,19 @@ export function getDynamicToken(): string | null {
   return _dynamicToken;
 }
 
+/**
+ * Drop the cached dynamic token and the "already tried" flag, so the next
+ * getDefaultHeaders() call fetches a fresh token instead of reusing one the
+ * server just rejected. Without this, a single expired cookie/token turns
+ * into permanent 403s for the rest of the plugin session (getDefaultHeaders
+ * only ever attempts fetchDynamicToken() once) — see network.ts's 401/403
+ * handling.
+ */
+export function invalidateDynamicToken(): void {
+  _dynamicToken = null;
+  _tokenFetchAttempted = false;
+}
+
 // Error types for consistent exception handling
 export const ERROR_TYPES = {
   NETWORK: 'NetworkError',
