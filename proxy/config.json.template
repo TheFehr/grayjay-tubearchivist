@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 13,
+  "version": 14,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -80,6 +80,9 @@
     ],
     "13": [
       "Fix watched/progress sync never actually working — getPlaybackTracker was implemented in the wrong place (a property on the video details object) instead of as the top-level source.getPlaybackTracker(url) method GrayJay's host actually calls, so it was silently never invoked on a real device since this feature was added in v3"
+    ],
+    "14": [
+      "Fix intermittent 403s that only cleared after Log out + Login — a token going bad mid-session (expired cookie, rotated token, TA restart) was cached as a permanent failure for the rest of the session; now retries once with a freshly-fetched token before giving up"
     ]
   },
   "constants": {
