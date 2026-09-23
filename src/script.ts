@@ -2,7 +2,14 @@
 
 import { getBaseUrl, getDynamicToken, getPluginConfig, setDynamicToken, setPluginConfig, setPluginSettings } from './constants';
 import { api } from './api';
-import { channelToGrayjayChannel, videoToGrayjayVideoDetails, TAPlaybackTracker } from './mappers';
+import {
+  channelToGrayjayChannel,
+  commentToGrayjayComment,
+  CommentListPager,
+  findCommentReplies,
+  videoToGrayjayVideoDetails,
+  TAPlaybackTracker
+} from './mappers';
 import { ChannelSearchPager, EmptyVideoPager, SearchPager, VideoListPager } from './pagers';
 import { getSubscribedChannelUrls } from './subscriptions';
 
@@ -126,6 +133,33 @@ source.getPlaybackTracker = function (url: string): PlaybackTracker | null {
   if (!videoId) return null;
 
   return new TAPlaybackTracker(videoId);
+};
+
+source.getComments = function (url: string): CommentPager {
+  log('getComments called with url: ' + url);
+
+  const videoId = parseVideoId(url);
+  if (!videoId) return new CommentListPager([]);
+
+  const comments = api.getComments(videoId);
+  return new CommentListPager(comments.map((c) => commentToGrayjayComment(pluginId(), videoId, c)));
+};
+
+// getSubComments is a real GrayJay source method but missing from
+// @types/grayjay-source's Source type (a type alias, so it can't be
+// declaration-merged like the typings in utils/types.d.ts).
+(source as typeof source & { getSubComments: (comment: PlatformComment) => CommentPager }).getSubComments = function (
+  comment: PlatformComment
+): CommentPager {
+  const videoId = comment.context?.videoId;
+  const commentId = comment.context?.commentId;
+  log('getSubComments called for comment: ' + commentId);
+  if (!videoId || !commentId) return new CommentListPager([]);
+
+  // Replies aren't addressable on their own in TubeArchivist's API — refetch
+  // the video's (single-response) comment tree and pick out this thread.
+  const replies = findCommentReplies(api.getComments(videoId), commentId);
+  return new CommentListPager(replies.map((c) => commentToGrayjayComment(pluginId(), videoId, c)));
 };
 
 source.isPlaylistUrl = function (url: string): boolean {

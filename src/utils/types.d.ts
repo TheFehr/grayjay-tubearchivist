@@ -134,6 +134,19 @@ declare interface PluginConfig extends SourceConfig {
  */
 declare interface PlatformVideo extends IPlatformVideoDef {}
 
+/**
+ * GrayJay's host keeps a string-valued `context` map on comments and passes
+ * it back via source.getSubComments(comment) — that's how real plugins
+ * (e.g. YouTube's) fetch replies — but @types/grayjay-source doesn't
+ * declare it yet. Declaration-merge it in.
+ */
+declare interface ICommentDef {
+  readonly context?: Record<string, string>;
+}
+declare interface PlatformComment {
+  readonly context?: Record<string, string>;
+}
+
 // Deliberately no local `declare const plugin` override here — this plugin
 // never reads the ambient plugin.config/plugin.settings/plugin.state
 // globals (see script.ts's source.enable, constants.ts), only the values

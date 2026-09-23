@@ -2,7 +2,7 @@
 
 import { api } from '../api';
 import { getBaseUrl, getDefaultHeaders, getPluginConfig, resolveThumbnailUrl, resolveUrl } from '../constants';
-import { TAChannel, TAVideo } from '../types';
+import { TAChannel, TAComment, TAVideo } from '../types';
 
 // Mapper functions convert TubeArchivist API data structures to GrayJay types
 
@@ -157,4 +157,61 @@ export function channelToGrayjayChannel(pluginId: string, channel: TAChannel): P
     description: channel.channel_description || '',
     url: channelUrl(channel)
   });
+}
+
+/**
+ * Maps a TubeArchivist comment (and, lazily, its nested replies) to a
+ * GrayJay PlatformComment. Commenters are arbitrary YouTube users rather than
+ * archived channels, so the author link points at YouTube instead of this
+ * plugin's /channel/ URLs.
+ *
+ * GrayJay's host only keeps the known comment fields plus a string-valued
+ * `context` map when it hands a comment back to source.getSubComments(), so
+ * the nested replies can't ride along on the object — context carries just
+ * the ids needed to look them up again (see findCommentReplies).
+ */
+export function commentToGrayjayComment(pluginId: string, videoId: string, comment: TAComment): PlatformComment {
+  const replies = comment.comment_replies || [];
+
+  return new PlatformComment({
+    contextUrl: `${getBaseUrl()}/video/${videoId}`,
+    author: new PlatformAuthorLink(
+      new PlatformID('YouTube', comment.comment_author_id, pluginId),
+      comment.comment_author,
+      `https://www.youtube.com/channel/${comment.comment_author_id}`,
+      comment.comment_author_thumbnail || ''
+    ),
+    message: comment.comment_text,
+    rating: new RatingLikes(comment.comment_likecount || 0),
+    date: comment.comment_timestamp || 0,
+    replyCount: replies.length,
+    context: { videoId, commentId: comment.comment_id },
+    getReplies: () => new CommentListPager(replies.map((r) => commentToGrayjayComment(pluginId, videoId, r)))
+  });
+}
+
+/** Depth-first search for a comment's replies in the nested comment tree */
+export function findCommentReplies(comments: TAComment[], commentId: string): TAComment[] {
+  for (const comment of comments) {
+    if (comment.comment_id === commentId) return comment.comment_replies || [];
+    const nested = findCommentReplies(comment.comment_replies || [], commentId);
+    if (nested.length) return nested;
+  }
+  return [];
+}
+
+/**
+ * Single-page comment pager — TubeArchivist returns every stored comment in
+ * one response, so there is never a next page.
+ */
+export class CommentListPager extends CommentPager {
+  constructor(results: PlatformComment[]) {
+    super(results, false);
+  }
+
+  public nextPage(): this {
+    this.results = [];
+    this.hasMore = false;
+    return this;
+  }
 }

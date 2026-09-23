@@ -117,3 +117,13 @@ defineIfMissing(
     }
   }
 );
+
+defineIfMissing(
+  'PlatformComment',
+  class PlatformComment {
+    plugin_type = 'Comment';
+    constructor(obj: Record<string, unknown>) {
+      Object.assign(this, obj);
+    }
+  }
+);

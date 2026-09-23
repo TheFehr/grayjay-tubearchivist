@@ -123,6 +123,67 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         }
     })
 
+    describe("comments (stubbed http)", () => {
+        const baseUrl = resolvedBaseUrl ?? ""
+        const reply = {
+            comment_author: "@replier", comment_author_id: "UCreply", comment_author_is_uploader: true,
+            comment_author_thumbnail: "https://yt3.ggpht.com/r", comment_id: "c1.r1", comment_is_favorited: false,
+            comment_likecount: null, comment_parent: "c1", comment_text: "a reply", comment_time_text: "2024-01-02",
+            comment_timestamp: 1704153600, comment_replies: []
+        }
+        const root = {
+            ...reply, comment_author: "@rooter", comment_author_id: "UCroot", comment_author_is_uploader: false,
+            comment_id: "c1", comment_likecount: 42, comment_parent: "root", comment_text: "top level",
+            comment_timestamp: 1704067200, comment_replies: [reply]
+        }
+
+        /** Temporarily swaps http.GET for a canned responder keyed on URL substrings */
+        function withHttp(responses: Record<string, { code: number, body: unknown }>, fn: () => void) {
+            const realGet = http.GET
+            ;(http as any).GET = (url: string) => {
+                const key = Object.keys(responses).find((k) => url.includes(k))
+                const res = key ? responses[key] : { code: 404, body: {} }
+                return { code: res.code, isOk: res.code >= 200 && res.code < 300, body: JSON.stringify(res.body), headers: {}, url }
+            }
+            try { fn() } finally { (http as any).GET = realGet }
+        }
+
+        test("getComments maps top-level comments with reply counts", () => {
+            withHttp({ "/api/video/vid1/comment/": { code: 200, body: [root] } }, () => {
+                const pager = source.getComments!(`${baseUrl}/video/vid1`) as any
+                assert.strictEqual(pager.hasMore, false)
+                assert.strictEqual(pager.results.length, 1)
+                const c = pager.results[0]
+                assert.strictEqual(c.message, "top level")
+                assert.strictEqual(c.replyCount, 1)
+                assert.strictEqual(c.date, 1704067200)
+                assert.strictEqual(c.rating.likes, 42)
+                assert.strictEqual(c.author.name, "@rooter")
+                assert.strictEqual(c.contextUrl, `${baseUrl}/video/vid1`)
+                assert.deepStrictEqual(c.context, { videoId: "vid1", commentId: "c1" })
+            })
+        })
+
+        test("getComments returns an empty pager when TubeArchivist has no comments (404)", () => {
+            withHttp({ "/api/video/vid1/comment/": { code: 404, body: { error: "video not found" } } }, () => {
+                const pager = source.getComments!(`${baseUrl}/video/vid1`) as any
+                assert.strictEqual(pager.results.length, 0)
+                assert.strictEqual(pager.hasMore, false)
+            })
+        })
+
+        test("getSubComments resolves replies from the comment context alone", () => {
+            withHttp({ "/api/video/vid1/comment/": { code: 200, body: [root] } }, () => {
+                // Mimics the host handing back only serialized fields + context
+                const pager = (source as any).getSubComments({ context: { videoId: "vid1", commentId: "c1" } })
+                assert.strictEqual(pager.results.length, 1)
+                assert.strictEqual(pager.results[0].message, "a reply")
+                assert.strictEqual(pager.results[0].rating.likes, 0)
+                assert.strictEqual(pager.results[0].replyCount, 0)
+            })
+        })
+    })
+
     test("dynamic token fetch fallback should fail gracefully without a static token or login session", { skip: !isLiveConfig }, () => {
         const configWithoutStaticToken = JSON.parse(JSON.stringify(config))
         if (configWithoutStaticToken.constants) delete configWithoutStaticToken.constants.authorization

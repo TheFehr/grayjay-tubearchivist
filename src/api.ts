@@ -9,6 +9,7 @@ import {
   TAChannel,
   TAChannelListParams,
   TAChannelListResponse,
+  TAComment,
   TAPlayer,
   TASearchResponse,
   TAVideo,
@@ -122,6 +123,16 @@ class APIClient {
    */
   getVideo(videoId: string): TAVideo {
     return this.getJson(`/api/video/${encodeURIComponent(videoId)}/`);
+  }
+
+  /**
+   * GET /api/video/<id>/comment/ - all stored comments, top-level only with
+   * replies nested. 404s ("video not found") when no comments are indexed for
+   * the video, which is the normal case unless comment downloading is enabled
+   * in TubeArchivist's settings — treated as "no comments", not an error.
+   */
+  getComments(videoId: string): TAComment[] {
+    return this.getJson(`/api/video/${encodeURIComponent(videoId)}/comment/`, { throwOnError: false }) || [];
   }
 
   /**

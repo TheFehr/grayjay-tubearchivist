@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 14,
+  "version": 15,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -83,6 +83,9 @@
     ],
     "14": [
       "Fix intermittent 403s that only cleared after Log out + Login — a token going bad mid-session (expired cookie, rotated token, TA restart) was cached as a permanent failure for the rest of the session; now retries once with a freshly-fetched token before giving up"
+    ],
+    "15": [
+      "Add comment support — comments TubeArchivist has archived for a video now show under it in GrayJay, including reply threads. Requires comment downloading to be enabled in TubeArchivist's settings (Download comments); videos without archived comments simply show none"
     ]
   },
   "constants": {

@@ -91,6 +91,26 @@ export interface TAVideo {
   youtube_id: string;
 }
 
+/**
+ * GET /api/video/<id>/comment/ item (video/serializers.py CommentItemSerializer).
+ * The endpoint returns only top-level comments; replies are nested under
+ * comment_replies by common/src/search_processor.py _process_comment.
+ */
+export interface TAComment {
+  comment_author: string;
+  comment_author_id: string;
+  comment_author_is_uploader: boolean;
+  comment_author_thumbnail: string;
+  comment_id: string;
+  comment_is_favorited: boolean;
+  comment_likecount: number | null;
+  comment_parent: string;
+  comment_text: string;
+  comment_time_text: string;
+  comment_timestamp: number;
+  comment_replies: TAComment[];
+}
+
 export interface TAVideoListResponse {
   data: TAVideo[];
   paginate: TAPagination;
