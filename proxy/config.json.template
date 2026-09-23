@@ -85,7 +85,7 @@
       "Fix intermittent 403s that only cleared after Log out + Login — a token going bad mid-session (expired cookie, rotated token, TA restart) was cached as a permanent failure for the rest of the session; now retries once with a freshly-fetched token before giving up"
     ],
     "15": [
-      "Add comment support — comments TubeArchivist has archived for a video now show under it in GrayJay, including reply threads. Requires comment downloading to be enabled in TubeArchivist's settings (Download comments); videos without archived comments simply show none"
+      "Add comment support — comments TubeArchivist has archived for a video now show under it in GrayJay, including reply threads. Requires “Index comments” to be set under TubeArchivist's Settings → Application → Comments; videos without archived comments simply show none"
     ]
   },
   "constants": {
