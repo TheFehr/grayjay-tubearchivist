@@ -7,7 +7,7 @@
   "sourceUrl": "https://github.com/TheFehr/grayjay-tubearchivist/releases/latest/download/config.json",
   "scriptUrl": "./script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 7,
+  "version": 15,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -73,6 +73,30 @@
     ],
     "7": [
       "Add automatic API token fetching via the login flow, for builds that don't bake in a static token — no effect on this deployment, which already has one configured"
+    ],
+    "8": [
+      "Actually sign this self-hosted Docker image — v6's signing fix only ever covered a separate, manually-built deployment; this published image was still shipping unsigned"
+    ],
+    "9": [
+      "Fix thumbnails/subtitles being blocked when this plugin is served from a different host than TubeArchivist itself — allowUrls now includes the plugin's own host, not just TubeArchivist's"
+    ],
+    "10": [
+      "Backfill this changelog — versions 1-9 had real fixes that were never recorded here"
+    ],
+    "11": [
+      "Stop baking your TubeArchivist API token into this plugin's config.json by default — that file has to be fetchable with no auth of its own, so anyone who could reach this plugin's URL could previously read your real token. Now defaults to a per-device login instead; the old baked-in-token behavior still exists but requires an explicit ALLOW_INSECURE_TOKEN=true opt-in on the server"
+    ],
+    "12": [
+      "Show GrayJay's native sign-in prompt when playback fails because you're not logged in yet, instead of a raw 'Failed to load video' error — a direct follow-up to v11's login-by-default change"
+    ],
+    "13": [
+      "Fix watched/progress sync never actually working — getPlaybackTracker was implemented in the wrong place (a property on the video details object) instead of as the top-level source.getPlaybackTracker(url) method GrayJay's host actually calls, so it was silently never invoked on a real device since this feature was added in v3"
+    ],
+    "14": [
+      "Fix intermittent 403s that only cleared after Log out + Login — a token going bad mid-session (expired cookie, rotated token, TA restart) was cached as a permanent failure for the rest of the session; now retries once with a freshly-fetched token before giving up"
+    ],
+    "15": [
+      "Add comment support — comments TubeArchivist has archived for a video now show under it in GrayJay, including reply threads. Requires comment downloading to be enabled in TubeArchivist's settings (Download comments); videos without archived comments simply show none"
     ]
   },
   "constants": {},

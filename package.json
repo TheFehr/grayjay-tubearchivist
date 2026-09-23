@@ -14,6 +14,7 @@
     "test:integration": "node scripts/integration.js",
     "prettier": "npx prettier --write ./src/**/*.ts",
     "publish": "npm run build:sign && node scripts/publish.js",
+    "release": "node scripts/release.js",
     "submit": "node scripts/submit.js",
     "init": "node scripts/init.js",
     "postinstall": "node scripts/init.js"
