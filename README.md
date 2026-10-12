@@ -34,14 +34,26 @@ pulling the published one.
 
 ## Features
 
-- [x] Search
+- [x] Search videos
+- [x] Search channels
+- [ ] Search suggestions
 - [x] Authentication
-- [ ] Live Streams
-- [ ] Comments
-- [ ] Playlists
 - [x] Home Feed
 - [x] Channel Details
 - [x] Video Details
+- [x] Subtitles
+- [x] Comments, including reply threads
+- [x] Import Subscriptions
+- [x] Playback progress / watched sync
+- [x] Watch-status filtering (home, creator pages & subscriptions, search)
+- [ ] Live Streams
+- [ ] Playlists (playlist links are recognized but open empty)
+
+Notes:
+
+- **Comments** only show up for videos TubeArchivist has archived comments for. Turn on "Index comments" under TubeArchivist's Settings → Application → Comments.
+- **Import Subscriptions** needs a one-time login prompt, opened from the plugin's detail page in GrayJay.
+- **Watched sync** reports your playback position to TubeArchivist as you watch, so watched status stays in sync with its web UI.
 
 ## Technology Stack
 
@@ -154,7 +166,10 @@ This will watch for changes and rebuild automatically.
 The plugin can be configured through the GrayJay app settings:
 
 - **API Server**: Your TubeArchivist server URL (GrayJay only supports dropdown/boolean settings, not free text, so this is a dropdown of known URLs)
-- **Enable Debug Logging**: Show detailed logs for debugging
+- **Home: Watch Status**: Which videos to show in the home feed based on their watched status in TubeArchivist — *Show all* (default), *Hide watched*, *Only in progress* or *Only watched*
+- **Creator Pages & Subscriptions: Watch Status**: The same choices for creator pages and the Subscriptions feed. GrayJay fetches both the same way, so one setting covers both
+- **Search: Watch Status**: The same choices for search results (filtered by the plugin, since TubeArchivist's search has no watch filter)
+- **Enable Debug Logging**: Log each plugin call (home, search, channel, details, …) for debugging
 
 ### Local development with a real server URL
 
