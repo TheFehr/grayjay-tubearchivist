@@ -254,37 +254,8 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
             }
         })
 
-        test("creator pages offer a Watch Status filter group", () => {
-            const caps = source.getChannelCapabilities!() as any
-            assert.deepStrictEqual(caps.types, ["VIDEOS"])
-            assert.strictEqual(caps.filters.length, 1)
-            const [group] = caps.filters
-            assert.strictEqual(group.id, "watchStatus")
-            assert.strictEqual(group.isMultiSelect, false)
-            assert.deepStrictEqual(group.filters.map((f: any) => f.value), ["Show all", "Hide watched", "Only in progress", "Only watched"])
-        })
-
-        test("a Watch Status filter picked on a creator page overrides the setting", () => {
-            const picks: Record<string, string | null> = { "Show all": null, "Hide watched": "unwatched", "Only in progress": "continue", "Only watched": "watched" }
-            for (const setting of ["0", "1", "3"]) {
-                for (const [pick, expected] of Object.entries(picks)) {
-                    source.enable!(config, { watchFilterChannel: setting })
-                    withRecordedHttp(listResponse, (urls) => {
-                        source.getChannelContents!(`${baseUrl}/channel/UC123`, null, null, { watchStatus: [pick] })
-                        assert.strictEqual(watchParam(videoListUrls(urls)[0]), expected, `setting ${setting}, pick ${pick}`)
-                    })
-                }
-            }
-        })
-
-        test("getChannelContents falls back to the setting when no filter is picked (Subscriptions feed)", () => {
-            for (const filters of [null, {}, { watchStatus: [] }]) {
-                source.enable!(config, { watchFilterChannel: "1" })
-                withRecordedHttp(listResponse, (urls) => {
-                    source.getChannelContents!(`${baseUrl}/channel/UC123`, null, null, filters as any)
-                    assert.strictEqual(watchParam(videoListUrls(urls)[0]), "unwatched", JSON.stringify(filters))
-                })
-            }
+        test("the plugin does not declare channel capabilities (GrayJay would change how it fetches subscriptions)", () => {
+            assert.strictEqual((source as any).getChannelCapabilities, undefined)
         })
 
         test("search filters client-side for each option", () => {

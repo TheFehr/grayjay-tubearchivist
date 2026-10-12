@@ -30,17 +30,6 @@ function pluginId(): string {
  */
 const WATCH_FILTER_OPTIONS: (TAWatchFilter | undefined)[] = [undefined, 'unwatched', 'continue', 'watched'];
 
-/** Id of the Watch Status filter group offered on creator pages (see getChannelCapabilities) */
-const WATCH_STATUS_FILTER_ID = 'watchStatus';
-
-/** Filter option label → watch filter; 'Show all' maps to null so it can override a non-default setting */
-const WATCH_STATUS_FILTER_OPTIONS: Record<string, TAWatchFilter | null> = {
-  'Show all': null,
-  'Hide watched': 'unwatched',
-  'Only in progress': 'continue',
-  'Only watched': 'watched'
-};
-
 /** The watch filter chosen in a "Watch Status" setting, or undefined for "Show all" */
 function watchFilter(variable: 'watchFilterHome' | 'watchFilterChannel' | 'watchFilterSearch'): TAWatchFilter | undefined {
   return WATCH_FILTER_OPTIONS[parseInt(getPluginSetting(variable, '0'), 10)];
@@ -119,26 +108,11 @@ source.getChannel = function (url: string): PlatformChannel {
   return channelToGrayjayChannel(pluginId(), channel);
 };
 
-// GrayJay uses getChannelContents for both a single creator's page and the
-// Subscriptions feed, and doesn't say which. The setting is therefore the
-// default for both, and this filter group lets the user override it on a
-// creator page (GrayJay passes the pick as `filters`; null/absent means the
-// setting applies).
-source.getChannelCapabilities = function () {
-  const options = Object.keys(WATCH_STATUS_FILTER_OPTIONS).map((name) => new FilterCapability(name, name, name));
-  return new ResultCapabilities(
-    [Type.Feed.Videos],
-    [Type.Order.Chronological],
-    [new FilterGroup('Watch Status', options, false, WATCH_STATUS_FILTER_ID)]
-  );
-};
-
-source.getChannelContents = function (
-  url: string,
-  _type?: string | null,
-  _order?: string | null,
-  filters?: Record<string, string[]> | null
-): VideoPager {
+// GrayJay calls getChannelContents for both a single creator's page and the
+// Subscriptions feed, and doesn't say which — so one setting covers both.
+// (Don't add getChannelCapabilities: GrayJay's creator page has no filter UI,
+// and the Subscriptions feed uses it to choose which content types to fetch.)
+source.getChannelContents = function (url: string): VideoPager {
   log('getChannelContents called with url: ' + url);
 
   const channelId = parseChannelId(url);
@@ -146,14 +120,11 @@ source.getChannelContents = function (
     return new EmptyVideoPager();
   }
 
-  const picked = filters?.[WATCH_STATUS_FILTER_ID]?.[0];
-  const watch = picked !== undefined && picked in WATCH_STATUS_FILTER_OPTIONS ? WATCH_STATUS_FILTER_OPTIONS[picked] : watchFilter('watchFilterChannel');
-
   return VideoListPager.load(pluginId(), {
     channel: channelId,
     sort: 'published',
     order: 'desc',
-    watch: watch ?? undefined
+    watch: watchFilter('watchFilterChannel')
   });
 };
 
