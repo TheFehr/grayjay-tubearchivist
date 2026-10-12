@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 16,
+  "version": 17,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -128,6 +128,10 @@
     ],
     "16": [
       "Add “Watch Status” settings for the home feed, creator pages and search — choose Show all, Hide watched, Only in progress or Only watched (default: Show all)"
+    ],
+    "17": [
+      "Subscriptions feed now respects the watch-status setting: the creator-page setting is renamed “Creator Pages & Subscriptions: Watch Status” (GrayJay treats the two the same)",
+      "Add a Watch Status filter on creator pages to override that default for a single creator (e.g. temporarily Show all or Only watched)"
     ]
   },
   "constants": {
