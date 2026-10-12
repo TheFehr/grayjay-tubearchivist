@@ -7,7 +7,7 @@
   "sourceUrl": "${PLUGIN_BASE_URL}/config.json",
   "scriptUrl": "${PLUGIN_BASE_URL}/script.js",
   "repositoryUrl": "https://github.com/TheFehr/grayjay-tubearchivist",
-  "version": 17,
+  "version": 18,
   "iconUrl": "https://www.tubearchivist.com/favicon.ico?favicon.4ba71032.ico",
   "id": "89d30d7a-5bba-4b83-bc32-6bbb0faaef2f",
   "scriptSignature": "",
@@ -131,6 +131,11 @@
     ],
     "17": [
       "Subscriptions feed now respects the watch-status setting: the creator-page setting is renamed “Creator Pages & Subscriptions: Watch Status” (GrayJay treats the two the same)"
+    ],
+    "18": [
+      "Remove the creator-page Watch Status filter announced in v17 — GrayJay has no UI for it, and declaring it changed how GrayJay fetches subscriptions. The “Creator Pages & Subscriptions: Watch Status” setting is unchanged",
+      "Fix the “Enable Debug Logging” setting, which previously did nothing — trace logs now only print when it's on",
+      "Fix the login prompt text, which wrongly said login was only needed for Import Subscriptions"
     ]
   },
   "constants": {
