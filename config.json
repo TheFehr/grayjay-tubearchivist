@@ -55,8 +55,8 @@
     },
     {
       "variable": "watchFilterChannel",
-      "name": "Creator Pages: Watch Status",
-      "description": "Which videos to show on creator (channel) pages, based on their watched status in TubeArchivist",
+      "name": "Creator Pages & Subscriptions: Watch Status",
+      "description": "Default for creator pages and the Subscriptions feed (GrayJay treats them the same); on a creator page you can override it with the Watch Status filter",
       "type": "Dropdown",
       "default": "0",
       "options": [
