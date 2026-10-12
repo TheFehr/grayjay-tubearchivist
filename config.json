@@ -27,7 +27,7 @@
     "cookiesToFind": [
       "sessionid"
     ],
-    "loginWarning": "This login is only used to unlock 'Import Subscriptions' below — the plugin already works without it, using the API token configured separately."
+    "loginWarning": "Needed to fetch your TubeArchivist API token for playback (unless this deployment already has one baked in) and to unlock 'Import Subscriptions' below."
   },
   "settings": [
     {
@@ -141,8 +141,7 @@
       "Add “Watch Status” settings for the home feed, creator pages and search — choose Show all, Hide watched, Only in progress or Only watched (default: Show all)"
     ],
     "17": [
-      "Subscriptions feed now respects the watch-status setting: the creator-page setting is renamed “Creator Pages & Subscriptions: Watch Status” (GrayJay treats the two the same)",
-      "Add a Watch Status filter on creator pages to override that default for a single creator (e.g. temporarily Show all or Only watched)"
+      "Subscriptions feed now respects the watch-status setting: the creator-page setting is renamed “Creator Pages & Subscriptions: Watch Status” (GrayJay treats the two the same)"
     ]
   },
   "constants": {},

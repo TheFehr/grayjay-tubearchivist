@@ -57,7 +57,7 @@ source.enable = function (conf: SourceConfig, settings: unknown, saveStateStr?: 
     try {
       Object.assign(pluginState, JSON.parse(saveStateStr));
     } catch (e) {
-      log('Warning: Failed to load saved state: ' + e);
+      console.log('[TubeArchivist] Warning: Failed to load saved state: ' + e);
     }
   }
 
@@ -214,8 +214,11 @@ source.saveState = function (): string {
 };
 
 // Helper Functions
+/** Trace logging, only when "Enable Debug Logging" is on (warnings elsewhere always log) */
 function log(message: string) {
-  console.log('[TubeArchivist] ' + message);
+  if (getPluginSetting('enableDebugLogging', 'false') === 'true') {
+    console.log('[TubeArchivist] ' + message);
+  }
 }
 
 log('TubeArchivist script loaded');

@@ -130,8 +130,7 @@
       "Add “Watch Status” settings for the home feed, creator pages and search — choose Show all, Hide watched, Only in progress or Only watched (default: Show all)"
     ],
     "17": [
-      "Subscriptions feed now respects the watch-status setting: the creator-page setting is renamed “Creator Pages & Subscriptions: Watch Status” (GrayJay treats the two the same)",
-      "Add a Watch Status filter on creator pages to override that default for a single creator (e.g. temporarily Show all or Only watched)"
+      "Subscriptions feed now respects the watch-status setting: the creator-page setting is renamed “Creator Pages & Subscriptions: Watch Status” (GrayJay treats the two the same)"
     ]
   },
   "constants": {

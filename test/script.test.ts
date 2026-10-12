@@ -290,6 +290,25 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         })
     })
 
+    test("trace logging only happens when Enable Debug Logging is on", () => {
+        const realLog = console.log
+        const lines: string[] = []
+        console.log = (...args: unknown[]) => { lines.push(args.join(" ")) }
+        try {
+            source.enable!(config, { enableDebugLogging: "false" })
+            source.searchSuggestions!("q")
+            const quiet = lines.filter((l) => l.includes("searchSuggestions called")).length
+            source.enable!(config, { enableDebugLogging: "true" })
+            source.searchSuggestions!("q")
+            const loud = lines.filter((l) => l.includes("searchSuggestions called")).length
+            assert.strictEqual(quiet, 0)
+            assert.strictEqual(loud, 1)
+        } finally {
+            console.log = realLog
+            source.enable!(config, {})
+        }
+    })
+
     test("dynamic token fetch fallback should fail gracefully without a static token or login session", { skip: !isLiveConfig }, () => {
         const configWithoutStaticToken = JSON.parse(JSON.stringify(config))
         if (configWithoutStaticToken.constants) delete configWithoutStaticToken.constants.authorization
