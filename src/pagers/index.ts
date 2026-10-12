@@ -1,7 +1,7 @@
 
 import { api } from '../api';
 import { channelToGrayjayChannel, videoToGrayjayVideo } from '../mappers';
-import { TAVideoListParams } from '../types';
+import { TAVideo, TAVideoListParams, TAWatchFilter } from '../types';
 
 /**
  * Paginated video list backed by GET /api/video/ (home feed, channel contents, playlist contents).
@@ -36,6 +36,21 @@ export class VideoListPager extends VideoPager {
   }
 }
 
+/** Client-side equivalent of the server's ?watch= filter, mirroring its semantics */
+function matchesWatchFilter(video: TAVideo, filter?: TAWatchFilter): boolean {
+  const watched = !!video.player?.watched;
+  switch (filter) {
+    case 'watched':
+      return watched;
+    case 'unwatched':
+      return !watched;
+    case 'continue':
+      return !watched && (video.player?.position || 0) > 0;
+    default:
+      return true;
+  }
+}
+
 /**
  * Search results backed by GET /api/search/, which is not paginated server-side.
  * Eager-loads the (only) page of video hits.
@@ -51,11 +66,13 @@ export class SearchPager extends VideoPager {
     return this;
   }
 
-  public static load(pluginId: string, query: string): SearchPager {
+  public static load(pluginId: string, query: string, watch?: TAWatchFilter): SearchPager {
     if (!query) return new SearchPager([]);
 
+    // /api/search/ has no watch filter, so filter the hits client-side
     const response = api.search(query);
-    const results = response.results.video_results.map((v) => videoToGrayjayVideo(pluginId, v));
+    const hits = response.results.video_results.filter((v) => matchesWatchFilter(v, watch));
+    const results = hits.map((v) => videoToGrayjayVideo(pluginId, v));
 
     return new SearchPager(results);
   }

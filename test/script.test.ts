@@ -184,6 +184,108 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         })
     })
 
+    describe("watch status settings (stubbed http)", () => {
+        const baseUrl = resolvedBaseUrl ?? ""
+        const pagination = { page_size: 12, page_from: 0, prev_pages: null, current_page: 1, max_hits: false, params: "", last_page: 1, next_pages: null, total_hits: 3 }
+        const video = (id: string, watched: boolean, position = 0) => ({
+            youtube_id: id, title: `video ${id}`, published: "2024-01-01", vid_thumb_url: "/cache/x.jpg",
+            media_url: `/media/${id}.mp4`, player: { watched, position, duration: 60, duration_str: "1m" },
+            stats: { view_count: 1, like_count: 0, average_rating: 0, dislike_count: 0 }, streams: [], tags: [], vid_type: "videos"
+        })
+        // Dropdown settings store the option INDEX: 0 Show all, 1 Hide watched, 2 Only in progress, 3 Only watched
+        const expectedWatchParam: Record<string, string | null> = { "0": null, "1": "unwatched", "2": "continue", "3": "watched" }
+
+        /** Stubs http.GET with a responder, recording every requested URL */
+        function withRecordedHttp(respond: (url: string) => unknown, fn: (urls: string[]) => void) {
+            const realGet = http.GET
+            const urls: string[] = []
+            ;(http as any).GET = (url: string) => {
+                urls.push(url)
+                return { code: 200, isOk: true, body: JSON.stringify(respond(url)), headers: {}, url }
+            }
+            try { fn(urls) } finally { (http as any).GET = realGet; source.enable!(config, {}) }
+        }
+        const listResponse = () => ({ data: [video("a", false)], paginate: pagination })
+        const searchResponse = () => ({ results: { video_results: [video("new", false), video("part", false, 12), video("done", true)], channel_results: [], playlist_results: [], fulltext_results: [] } })
+        const videoListUrls = (urls: string[]) => urls.filter((u) => u.includes("/api/video/"))
+        const watchParam = (u: string) => new URL(u).searchParams.get("watch")
+
+        test("config declares the three Watch Status dropdowns, defaulting to Show all", () => {
+            for (const variable of ["watchFilterHome", "watchFilterChannel", "watchFilterSearch"]) {
+                const setting = config.settings.find((s: any) => s.variable === variable)
+                assert.ok(setting, variable)
+                assert.strictEqual(setting.type, "Dropdown")
+                assert.strictEqual(setting.default, "0")
+                assert.deepStrictEqual(setting.options, ["Show all", "Hide watched", "Only in progress", "Only watched"])
+            }
+        })
+
+        test("getHome sends no watch filter by default", () => {
+            source.enable!(config, {})
+            withRecordedHttp(listResponse, (urls) => {
+                source.getHome!()
+                assert.ok(videoListUrls(urls).length > 0)
+                for (const u of videoListUrls(urls)) assert.strictEqual(watchParam(u), null, u)
+            })
+        })
+
+        test("getHome maps each option to the right watch filter, including on the next page", () => {
+            for (const [index, expected] of Object.entries(expectedWatchParam)) {
+                source.enable!(config, { watchFilterHome: index })
+                withRecordedHttp(() => ({ data: [video("a", false)], paginate: { ...pagination, last_page: 2 } }), (urls) => {
+                    const pager = source.getHome!() as VideoPager
+                    pager.nextPage()
+                    const lists = videoListUrls(urls)
+                    assert.strictEqual(lists.length, 2)
+                    for (const u of lists) assert.strictEqual(watchParam(u), expected, `option ${index}: ${u}`)
+                })
+            }
+        })
+
+        test("getChannelContents maps each option to the right watch filter", () => {
+            for (const [index, expected] of Object.entries(expectedWatchParam)) {
+                source.enable!(config, { watchFilterChannel: index })
+                withRecordedHttp(listResponse, (urls) => {
+                    source.getChannelContents!(`${baseUrl}/channel/UC123`)
+                    const [u] = videoListUrls(urls)
+                    assert.ok(u.includes("channel=UC123"), u)
+                    assert.strictEqual(watchParam(u), expected, `option ${index}: ${u}`)
+                })
+            }
+        })
+
+        test("search filters client-side for each option", () => {
+            const expectedIds: Record<string, string[]> = {
+                "0": ["new", "part", "done"], "1": ["new", "part"], "2": ["part"], "3": ["done"]
+            }
+            for (const [index, ids] of Object.entries(expectedIds)) {
+                source.enable!(config, { watchFilterSearch: index })
+                withRecordedHttp(searchResponse, () => {
+                    const pager = source.search!("q", "VIDEO", "", new Map()) as VideoPager
+                    assert.deepStrictEqual(pager.results.map((v: any) => v.id.value), ids, `option ${index}`)
+                })
+            }
+        })
+
+        test("each setting only affects its own surface", () => {
+            source.enable!(config, { watchFilterHome: "1" })
+            withRecordedHttp(listResponse, (urls) => {
+                source.getChannelContents!(`${baseUrl}/channel/UC123`)
+                assert.strictEqual(watchParam(videoListUrls(urls)[0]), null)
+            })
+            withRecordedHttp(searchResponse, () => {
+                assert.strictEqual((source.search!("q", "VIDEO", "", new Map()) as VideoPager).results.length, 3)
+            })
+            for (const setting of [{ watchFilterChannel: "1" }, { watchFilterSearch: "1" }]) {
+                source.enable!(config, setting)
+                withRecordedHttp(listResponse, (urls) => {
+                    source.getHome!()
+                    assert.strictEqual(watchParam(videoListUrls(urls)[0]), null)
+                })
+            }
+        })
+    })
+
     test("dynamic token fetch fallback should fail gracefully without a static token or login session", { skip: !isLiveConfig }, () => {
         const configWithoutStaticToken = JSON.parse(JSON.stringify(config))
         if (configWithoutStaticToken.constants) delete configWithoutStaticToken.constants.authorization

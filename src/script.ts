@@ -1,6 +1,6 @@
 // TubeArchivist Source Plugin for GrayJay
 
-import { getBaseUrl, getDynamicToken, getPluginConfig, setDynamicToken, setPluginConfig, setPluginSettings } from './constants';
+import { getBaseUrl, getDynamicToken, getPluginConfig, getPluginSetting, setDynamicToken, setPluginConfig, setPluginSettings } from './constants';
 import { api } from './api';
 import {
   channelToGrayjayChannel,
@@ -10,6 +10,7 @@ import {
   videoToGrayjayVideoDetails,
   TAPlaybackTracker
 } from './mappers';
+import { TAWatchFilter } from './types';
 import { ChannelSearchPager, EmptyVideoPager, SearchPager, VideoListPager } from './pagers';
 import { getSubscribedChannelUrls } from './subscriptions';
 
@@ -21,6 +22,17 @@ let pluginState: Record<string, any> = {};
 
 function pluginId(): string {
   return (getPluginConfig() as any)?.id || '';
+}
+
+/**
+ * Order matches the "Watch Status" Dropdown options in config.json — Dropdown
+ * settings store the option's INDEX (see constants.ts getPluginSetting).
+ */
+const WATCH_FILTER_OPTIONS: (TAWatchFilter | undefined)[] = [undefined, 'unwatched', 'continue', 'watched'];
+
+/** The watch filter chosen in a "Watch Status" setting, or undefined for "Show all" */
+function watchFilter(variable: 'watchFilterHome' | 'watchFilterChannel' | 'watchFilterSearch'): TAWatchFilter | undefined {
+  return WATCH_FILTER_OPTIONS[parseInt(getPluginSetting(variable, '0'), 10)];
 }
 
 /** Extract the youtube_id/local id from a /video/<id> detail URL */
@@ -62,7 +74,7 @@ source.enable = function (conf: SourceConfig, settings: unknown, saveStateStr?: 
 
 source.getHome = function (): VideoPager {
   log('getHome called');
-  return VideoListPager.load(pluginId(), { sort: 'published', order: 'desc' });
+  return VideoListPager.load(pluginId(), { sort: 'published', order: 'desc', watch: watchFilter('watchFilterHome') });
 };
 
 source.searchSuggestions = function (query: string): string[] {
@@ -72,7 +84,7 @@ source.searchSuggestions = function (query: string): string[] {
 
 source.search = function (query: string): VideoPager {
   log('search called with query: ' + query);
-  return SearchPager.load(pluginId(), query);
+  return SearchPager.load(pluginId(), query, watchFilter('watchFilterSearch'));
 };
 
 source.searchChannels = function (query: string): ChannelPager {
@@ -104,7 +116,12 @@ source.getChannelContents = function (url: string): VideoPager {
     return new EmptyVideoPager();
   }
 
-  return VideoListPager.load(pluginId(), { channel: channelId, sort: 'published', order: 'desc' });
+  return VideoListPager.load(pluginId(), {
+    channel: channelId,
+    sort: 'published',
+    order: 'desc',
+    watch: watchFilter('watchFilterChannel')
+  });
 };
 
 source.getUserSubscriptions = function (): string[] {

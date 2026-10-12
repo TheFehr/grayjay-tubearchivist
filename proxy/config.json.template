@@ -32,6 +32,45 @@
       "options": ["${TA_BASE_URL}"]
     },
     {
+      "variable": "watchFilterHome",
+      "name": "Home: Watch Status",
+      "description": "Which videos to show in the home feed, based on their watched status in TubeArchivist",
+      "type": "Dropdown",
+      "default": "0",
+      "options": [
+        "Show all",
+        "Hide watched",
+        "Only in progress",
+        "Only watched"
+      ]
+    },
+    {
+      "variable": "watchFilterChannel",
+      "name": "Creator Pages: Watch Status",
+      "description": "Which videos to show on creator (channel) pages, based on their watched status in TubeArchivist",
+      "type": "Dropdown",
+      "default": "0",
+      "options": [
+        "Show all",
+        "Hide watched",
+        "Only in progress",
+        "Only watched"
+      ]
+    },
+    {
+      "variable": "watchFilterSearch",
+      "name": "Search: Watch Status",
+      "description": "Which videos to show in search results, based on their watched status in TubeArchivist",
+      "type": "Dropdown",
+      "default": "0",
+      "options": [
+        "Show all",
+        "Hide watched",
+        "Only in progress",
+        "Only watched"
+      ]
+    },
+    {
       "variable": "enableDebugLogging",
       "name": "Enable Debug Logging",
       "description": "Enable detailed logging for debugging purposes",

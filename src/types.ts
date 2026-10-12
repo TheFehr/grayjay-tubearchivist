@@ -121,6 +121,9 @@ export interface TAChannelListResponse {
   paginate: TAPagination;
 }
 
+/** GET /api/video/ ?watch= values: 'unwatched' is everything not yet marked watched (including in-progress); 'continue' is the in-progress subset */
+export type TAWatchFilter = 'watched' | 'unwatched' | 'continue';
+
 export interface TAVideoListParams {
   page?: number;
   channel?: string;
@@ -128,6 +131,7 @@ export interface TAVideoListParams {
   sort?: 'published' | 'downloaded' | 'views' | 'likes' | 'duration' | 'filesize';
   order?: 'asc' | 'desc';
   type?: TAVideoType;
+  watch?: TAWatchFilter;
 }
 
 export interface TAChannelListParams {
