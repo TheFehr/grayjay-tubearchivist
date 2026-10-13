@@ -77,7 +77,7 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         console.log("video details:", redacted(details))
     })
 
-    test("source.getPlaybackTracker should report progress to TubeArchivist", { skip: !isLiveConfig }, () => {
+    test("source.getPlaybackTracker should report progress to TubeArchivist (stubbed POST)", { skip: !isLiveConfig }, () => {
         // GrayJay's real host calls source.getPlaybackTracker(url) directly
         // (see node_modules/@types/grayjay-source/src/plugin.d.ts) — not a
         // getPlaybackTracker property on the details object returned from
@@ -95,11 +95,28 @@ describe("TubeArchivist Plugin Tests", { skip: false }, () => {
         assert.ok(typeof tracker.nextRequest === "number", "tracker should expose a numeric nextRequest")
         assert.ok(typeof tracker.onProgress === "function", "tracker should expose onProgress")
 
-        tracker.onInit(3)
-        tracker.onProgress(7, true)
-        tracker.onConcluded()
+        // http.POST is stubbed: the progress endpoint overwrites the real
+        // watch position (and watched state) of whatever video it is sent,
+        // and home.results[0] is a real video on the live server.
+        const realPost = http.POST
+        const posts: { url: string, body: any }[] = []
+        ;(http as any).POST = (postUrl: string, body: unknown) => {
+            posts.push({ url: postUrl, body: typeof body === "string" ? JSON.parse(body) : body })
+            return { code: 200, isOk: true, body: JSON.stringify({ watched: false, duration: 60, duration_str: "1m" }), headers: {}, url: postUrl }
+        }
+        try {
+            tracker.onInit(3)
+            tracker.onProgress(7, true)
+            tracker.onConcluded()
+        } finally {
+            (http as any).POST = realPost
+        }
 
-        console.log(`playback tracker: nextRequest=${tracker.nextRequest}ms, reported position 3s then 7s for ${(home.results[0] as any).name}`)
+        const videoId = url.split("/video/")[1]
+        assert.deepStrictEqual(posts.map((p) => p.body.position), [3, 7, 7])
+        for (const p of posts) assert.ok(p.url.endsWith(`/api/video/${videoId}/progress/`), p.url)
+
+        console.log(`playback tracker: nextRequest=${tracker.nextRequest}ms, reported positions 3s, 7s, 7s (stubbed) for ${(home.results[0] as any).name}`)
     })
 
     test("getUserSubscriptions should return resolvable channel URLs", { skip: !isLiveConfig }, () => {
